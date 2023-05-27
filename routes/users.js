@@ -71,7 +71,7 @@ router.post('/signup', async (req, res) => {
         }
 
         //2.도메인 형식이 맞지 않는 경우
-        const emailDomain = ['naver.com', 'gmail.com', 'hamail.net'];
+        const emailDomain = ['naver.com', 'gmail.com', 'hamail.net', 'kakao.com'];
         let emailOk = 0;
         for (let i of emailDomain) {
             if (existAt[1] === i) {

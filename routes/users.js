@@ -171,7 +171,7 @@ router.post('/login', async (req, res) => {
 });
 
 // ◎  로그아웃 API
-router.post('/logout', async (req, res) => {
+router.post('/logout', checkLogin, async (req, res) => {
     try {
         res.clearCookie('Authorization');
         //res.redirect('/api');

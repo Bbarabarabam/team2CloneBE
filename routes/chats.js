@@ -62,7 +62,19 @@ router.post('/chat', checkLogin, async (req, res) => {
         });
 
         // API 사용
-        const reply = await callChatGPT({ role: 'user', content: ask });
+        const reply = await callChatGPT([{ role: 'user', content: ask }]);
+        // 사용자 질문 저장
+        await Conversations.create({
+            ChatId: chat.dataValues.chatId,
+            isGPT: false,
+            conversation: ask,
+        });
+        // GPT 답변 내용 저장
+        await Conversations.create({
+            ChatId: chat.dataValues.chatId,
+            isGPT: true,
+            conversation: reply.content,
+        });
 
         res.status(201).json({
             chatId: chat.chatId,
@@ -156,20 +168,17 @@ router.get('/chat', checkLogin, async (req, res) => {
 
 // ◎  대화하기
 router.post('/chat/:chatId', checkLogin, async (req, res) => {
-    //const { userId } = res.locals.user;
+    const { userId } = res.locals.user;
     const { chatId } = req.params;
     const { ask } = req.body;
     try {
         // 사용자 크레딧 확인
-        // const credit = await Users.findOne({
-        //     where: { userId },
-        //     attributes: ['credit'],
-        // });
-        // if (!credit) {
-        //     res.status(402).json({
-        //         errorMsg: '질문에 필요한 크레딧이 부족합니다.',
-        //     });
-        // }
+        const user = await Users.findOne({ where: { UserId: userId } });
+        if (!user.credit) {
+            res.status(402).json({
+                errorMsg: '질문에 필요한 크레딧이 부족합니다.',
+            });
+        }
         // 사용자 대화 저장
         await Conversations.create({
             ChatId: chatId,
@@ -181,6 +190,7 @@ router.post('/chat/:chatId', checkLogin, async (req, res) => {
             where: { ChatId: chatId },
             attributes: ['isGPT', 'conversation'],
         });
+        
         // 이전 대화내용을 openAI API 형식에 맞게 변환
         const conversation = previousChat.map((val) => {
             return {
@@ -188,6 +198,7 @@ router.post('/chat/:chatId', checkLogin, async (req, res) => {
                 content: val.conversation,
             };
         });
+        
         // 신규 질문 추가
         conversation.push({ role: 'user', content: ask });
         // API 사용
@@ -196,8 +207,11 @@ router.post('/chat/:chatId', checkLogin, async (req, res) => {
         await Conversations.create({
             ChatId: chatId,
             isGPT: true,
-            conversation: reply,
+            conversation: reply.content,
         });
+        // credit 차감
+        user.credit -= 1
+        user.save()
         res.status(200).json({ answer: reply });
     } catch (error) {
         console.error(`[GET] /chat/:chatId with ${error}`);

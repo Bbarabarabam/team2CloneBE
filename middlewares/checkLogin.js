@@ -13,7 +13,6 @@ module.exports = async (req, res, next) => {
         }
 
         const [authType, authToken] = Authorization.split(' ');
-        console.log(Authorization, authType, authToken);
 
         //authTyep === Bearer인지 확인
         if (authType !== 'Bearer' || !authToken) {

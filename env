@@ -1,0 +1,5 @@
+# This is env
+DB_HOST=express-database.cfwjgkrx66is.ap-northeast-2.rds.amazonaws.com
+DB_USERNAME=root
+DB_PASSWORD=4321aaaa
+DB_DATABASE=chatGPTnpx sequelize db:migrate
